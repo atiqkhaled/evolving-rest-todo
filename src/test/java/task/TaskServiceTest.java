@@ -21,16 +21,29 @@ import java.sql.Timestamp;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class TaskServiceTest {
     @Mock
     private TaskRepository taskRepository;
     private TaskService taskService;
+    Task task;
+    TaskRequest expectedReq;
     @BeforeEach
     void setUp() {
-      taskService = new TaskService(taskRepository);
+        task = new Task();
+        task.setId(1);
+        task.setDescription("test");
+        task.setPriority(PriorityEnum.High);
+        task.setStatus(StatusEnum.Pending);
+        task.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        task.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        expectedReq = new TaskRequest();
+        expectedReq.setPriority(PriorityEnum.Medium.name());
+        expectedReq.setDescription("test 2");
+        expectedReq.setStatus(StatusEnum.Done.name());
+        taskService = new TaskService(taskRepository);
     }
 
     @DisplayName("( Create Task ) Should Test BadReqException For Malformed Task")
@@ -40,40 +53,27 @@ public class TaskServiceTest {
          Assertions.assertThrows(BadRequestException.class,()-> taskService.add(taskRequest));
     }
 
-    @DisplayName("( Create Task ) Should Test InternalServerException For Unhandled Case")
-    @Test
-    void shouldTestInternalServerException() {
-        when(taskRepository.save(any(Task.class))).thenThrow(InternalServerException.class);
-        TaskRequest taskRequest = new TaskRequest();
-        taskRequest.setPriority("High");
-        taskRequest.setDescription("test");
-        Assertions.assertThrows(InternalServerException.class,()-> taskService.add(taskRequest));
-    }
-
     @DisplayName("( Create Task )Should Create Task")
     @Test
     void ShouldCreateTask() {
-        Task task = new Task();
-        task.setId(1);
-        task.setDescription("test");
-        task.setPriority(PriorityEnum.High);
-        task.setStatus(StatusEnum.Pending);
-        task.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-        task.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
         when(taskRepository.save(any(Task.class))).thenReturn(task);
-        TaskRequest taskRequest = new TaskRequest();
-        taskRequest.setPriority("High");
-        taskRequest.setDescription("test");
-        Task dbTask = taskService.add(taskRequest);
-        Assertions.assertAll(() -> Assertions.assertEquals(task.getId(),dbTask.getId()),
-                () -> Assertions.assertEquals(task.getDescription(),dbTask.getDescription()),
-                () -> Assertions.assertEquals(task.getPriority(),dbTask.getPriority()),
-                () -> Assertions.assertEquals(task.getStatus(),dbTask.getStatus()),
-                () -> Assertions.assertEquals(task.getCreatedAt(),dbTask.getCreatedAt()),
-                () -> Assertions.assertEquals(task.getUpdatedAt(),dbTask.getUpdatedAt()));
+        Task actualTask = taskService.add(expectedReq);
+        Assertions.assertAll(() -> Assertions.assertEquals(task.getId(),actualTask.getId()),
+                () -> Assertions.assertEquals(task.getDescription(),actualTask.getDescription()),
+                () -> Assertions.assertEquals(task.getPriority(),actualTask.getPriority()),
+                () -> Assertions.assertEquals(task.getStatus(),actualTask.getStatus()),
+                () -> Assertions.assertEquals(task.getCreatedAt(),actualTask.getCreatedAt()),
+                () -> Assertions.assertEquals(task.getUpdatedAt(),actualTask.getUpdatedAt()));
     }
 
-    @DisplayName("( Get Task ) Test Task Not Found")
+    @DisplayName("( Create Task ) Test InternalServerException For Unhandled Case")
+    @Test
+    void shouldTestInternalServerException() {
+        when(taskRepository.save(task)).thenThrow(InternalServerException.class);
+        Assertions.assertThrows(InternalServerException.class,()-> taskService.add(expectedReq));
+    }
+
+    @DisplayName("( Get Task ) Task Not Found")
     @Test
     void taskNotFound() {
         when(taskRepository.findById(5l)).thenReturn(Optional.ofNullable(null));
@@ -91,87 +91,86 @@ public class TaskServiceTest {
         });
     }
 
-    @DisplayName("( Get Task ) Test Find Task")
+    @DisplayName("( Get Task ) Find Task")
     @Test
     void testFindTask() {
-        Task task = new Task();
-        task.setId(1);
-        task.setDescription("test");
-        task.setPriority(PriorityEnum.High);
-        task.setStatus(StatusEnum.Pending);
-        task.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-        task.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
         when(taskRepository.findById(1l)).thenReturn(Optional.of(task));
-        Assertions.assertEquals(task,taskService.getTask(1l));
+        Task actualTask = taskService.getTask(1l);
+        Assertions.assertEquals(task.getId(),actualTask.getId());
     }
 
-    @DisplayName("( Update Task ) Test Task Not Found")
+    @DisplayName("( Update Task ) Task Not Found")
     @Test
     void updateTaskNotFound() {
         when(taskRepository.findById(5l)).thenReturn(Optional.ofNullable(null));
-        TaskRequest taskRequest = new TaskRequest();
-        taskRequest.setPriority("High");
-        taskRequest.setDescription("test");
-        taskRequest.setStatus(StatusEnum.Done.name());
         Assertions.assertThrows(BusinessNotFoundException.class,() -> {
-            taskService.updateTask(taskRequest,5l);
+            taskService.updateTask(expectedReq,5l);
         });
     }
     @DisplayName("( Update Task ) Test InternalServerException while update task")
     @Test
     void updateTaskInternalServerException() {
         when(taskRepository.findById(5l)).thenThrow(RuntimeException.class);
-        TaskRequest taskRequest = new TaskRequest();
-        taskRequest.setPriority(PriorityEnum.Medium.name());
-        taskRequest.setDescription("test");
-        taskRequest.setStatus(StatusEnum.Done.name());
         Assertions.assertThrows(InternalServerException.class,() -> {
-            taskService.updateTask(taskRequest,5l);
+            taskService.updateTask(expectedReq,5l);
         });
     }
 
     @DisplayName("( Update Task ) test copy of Task")
     @Test
     void testTaskCopy() {
-        Task task = new Task();
-        task.setId(1);
-        task.setDescription("test");
-        task.setPriority(PriorityEnum.High);
-        task.setStatus(StatusEnum.Pending);
-        TaskRequest taskRequest = new TaskRequest();
-        taskRequest.setPriority(PriorityEnum.Medium.name());
-        taskRequest.setDescription("testcopy");
-        taskRequest.setStatus(StatusEnum.Done.name());
-        Task copyTask = task.copy(taskRequest);
-        Assertions.assertAll(() -> Assertions.assertEquals(taskRequest.getStatus(),copyTask.getStatus().name()),
-                () -> Assertions.assertEquals(taskRequest.getDescription(),copyTask.getDescription()),
-                () -> Assertions.assertEquals(taskRequest.getPriority(),copyTask.getPriority().name()),
-                () -> Assertions.assertEquals(task.getId(),copyTask.getId()));
+        Task actualTask = task.copy(expectedReq);
+        Assertions.assertAll(() -> Assertions.assertEquals(expectedReq.getStatus(),actualTask.getStatus().name()),
+                () -> Assertions.assertEquals(expectedReq.getDescription(),actualTask.getDescription()),
+                () -> Assertions.assertEquals(expectedReq.getPriority(),actualTask.getPriority().name()),
+                () -> Assertions.assertEquals(task.getId(),actualTask.getId()));
 
     }
 
     @DisplayName("( Update Task ) Test Task updated")
     @Test
     void updateTask() {
-        Task task = new Task();
-        task.setId(1);
-        task.setDescription("test");
-        task.setPriority(PriorityEnum.High);
-        task.setStatus(StatusEnum.Pending);
-        task.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-        task.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
         when(taskRepository.findById(5l)).thenReturn(Optional.of(task));
-        when(taskRepository.save(any())).thenReturn(task);
-        TaskRequest taskRequest = new TaskRequest();
-        taskRequest.setPriority(PriorityEnum.Medium.name());
-        taskRequest.setDescription("test");
-        taskRequest.setStatus(StatusEnum.Done.name());
-        Task mockTask = taskService.updateTask(taskRequest,5l);
-        Assertions.assertAll(() -> Assertions.assertEquals(task.getStatus(),mockTask.getStatus()),
-                () -> Assertions.assertEquals(task.getDescription(),mockTask.getDescription()),
-                () -> Assertions.assertEquals(task.getPriority(),mockTask.getPriority()),
-                () -> Assertions.assertEquals(task.getId(),mockTask.getId()));
+        when(taskRepository.save(task)).thenReturn(task);
+        Task actualTask = taskService.updateTask(expectedReq,5l);
+        Assertions.assertAll(() -> Assertions.assertEquals(expectedReq.getStatus(),actualTask.getStatus().name()),
+                () -> Assertions.assertEquals(expectedReq.getDescription(),actualTask.getDescription()),
+                () -> Assertions.assertEquals(expectedReq.getPriority(),actualTask.getPriority().name()),
+                () -> Assertions.assertEquals(task.getId(),actualTask.getId()));
     }
+
+    @DisplayName("( Delete Task ) Test Task Not Found for delete")
+    @Test
+    void deleteTaskNotFound() {
+        when(taskRepository.findById(5l)).thenReturn(Optional.ofNullable(null));
+        Assertions.assertThrows(BusinessNotFoundException.class,() -> {
+            taskService.delete(5l);
+        });
+    }
+    @DisplayName("( Delete Task ) Delete Task")
+    @Test
+    void deleteTask() {
+        when(taskRepository.findById(5l)).thenReturn(Optional.of(task));
+        taskService.delete(5l);
+        verify(taskRepository, times(1)).delete(task);
+    }
+
+    @DisplayName("( MarkAsDone ) task not found")
+    @Test
+    void taskNotFoundForMarkAsDone() {
+        when(taskRepository.findById(5l)).thenReturn(Optional.ofNullable(null));
+        Assertions.assertThrows(BusinessNotFoundException.class,() -> taskService.markAsDone(5l));
+    }
+
+    @DisplayName("( MarkAsDone ) Mark task as done")
+    @Test
+    void testMarkTaskAsDone() {
+        when(taskRepository.findById(5l)).thenReturn(Optional.of(task));
+        when(taskRepository.save(task)).thenReturn(task);
+        Task actual = taskService.markAsDone(5l);
+        Assertions.assertEquals(StatusEnum.Done,actual.getStatus());
+    }
+
 
 
 

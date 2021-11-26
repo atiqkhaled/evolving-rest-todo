@@ -8,6 +8,7 @@ import sme.model._enum.StatusEnum;
 import sme.repository.TaskRepository;
 import sme.util.exceptions.BadRequestException;
 import sme.util.exceptions.BusinessNotFoundException;
+import sme.util.exceptions.BusinessServiceUnavailableException;
 import sme.util.exceptions.InternalServerException;
 
 import java.util.Optional;
@@ -68,4 +69,34 @@ public class TaskService {
         return updateTask;
     }
 
+    public void delete(long id) {
+        try {
+            Optional<Task> optionalTask = taskRepository.findById(id);
+            if (!optionalTask.isPresent())
+                throw new BusinessNotFoundException();
+            taskRepository.delete(optionalTask.get());
+        }catch (BusinessNotFoundException bnf) {
+            throw bnf;
+        } catch (Exception ex) {
+            throw new BusinessServiceUnavailableException();
+        }
+    }
+
+    public Task markAsDone(long id) {
+        Task dbTask = null;
+        try {
+            Optional<Task> optionalTask = taskRepository.findById(id);
+            if (!optionalTask.isPresent()) {
+                throw new BusinessNotFoundException();
+            }
+            dbTask = optionalTask.get();
+            dbTask.setStatus(StatusEnum.Done);
+            dbTask = taskRepository.save(dbTask);
+        }catch (BusinessNotFoundException bnf) {
+            throw bnf;
+        }catch (Exception ex) {
+            throw new InternalServerException();
+        }
+        return dbTask;
+    }
 }
