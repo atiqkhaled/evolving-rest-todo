@@ -51,4 +51,21 @@ public class TaskService {
             throw new InternalServerException();
         }
     }
+
+    public Task updateTask(TaskRequest taskRequest,long id) {
+        Task updateTask = null;
+        try {
+            Optional<Task> optionalTask = taskRepository.findById(id);
+            if (!optionalTask.isPresent())
+                throw new BusinessNotFoundException();
+            updateTask = optionalTask.get().copy(taskRequest);
+            updateTask = taskRepository.save(updateTask);
+        } catch (BusinessNotFoundException bnf) {
+            throw bnf;
+        } catch (Exception ex) {
+            throw new InternalServerException();
+        }
+        return updateTask;
+    }
+
 }

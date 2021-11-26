@@ -2,6 +2,7 @@ package sme.model;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import sme.controller.dto.TaskRequest;
 import sme.model._enum.PriorityEnum;
 import sme.model._enum.StatusEnum;
 
@@ -80,4 +81,11 @@ public class Task {
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
     }
+    public Task copy(TaskRequest taskRequest) {
+        this.setPriority(PriorityEnum.valueOf(taskRequest.getPriority()));
+        this.setStatus(StatusEnum.valueOf(taskRequest.getStatus()));
+        this.setDescription(taskRequest.getDescription());
+        return this;
+    }
+
 }
