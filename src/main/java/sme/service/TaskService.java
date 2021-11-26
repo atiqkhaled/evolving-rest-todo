@@ -7,7 +7,10 @@ import sme.model._enum.PriorityEnum;
 import sme.model._enum.StatusEnum;
 import sme.repository.TaskRepository;
 import sme.util.exceptions.BadRequestException;
-import sme.util.exceptions.InterServerException;
+import sme.util.exceptions.BusinessNotFoundException;
+import sme.util.exceptions.InternalServerException;
+
+import java.util.Optional;
 
 @Service
 public class TaskService {
@@ -30,8 +33,22 @@ public class TaskService {
         } catch (BadRequestException bre) {
             throw bre;
         } catch (Exception ex) {
-            throw new InterServerException();
+            throw new InternalServerException();
         }
         return dbTask;
+    }
+
+    public Task getTask(long id) {
+        try {
+            Optional<Task> optionalTask = taskRepository.findById(id);
+            if (!optionalTask.isPresent())
+                throw new BusinessNotFoundException();
+            Task dbTask = optionalTask.get();
+            return dbTask;
+        } catch (BusinessNotFoundException bnf) {
+            throw bnf;
+        } catch (Exception ex) {
+            throw new InternalServerException();
+        }
     }
 }
