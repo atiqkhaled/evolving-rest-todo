@@ -2,12 +2,14 @@ package sme.model;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import sme.controller.dto.TaskRequest;
 import sme.model._enum.PriorityEnum;
 import sme.model._enum.StatusEnum;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
+import java.util.Objects;
 
 @Entity
 @Table
@@ -18,7 +20,7 @@ public class Task {
     @NotNull
     private String description;
     @NotNull
-    @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.ORDINAL)
     private PriorityEnum priority;
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -79,5 +81,29 @@ public class Task {
 
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    public Task copy(TaskRequest taskRequest) {
+        this.setPriority(PriorityEnum.valueOf(taskRequest.getPriority()));
+        this.setStatus(StatusEnum.valueOf(taskRequest.getStatus()));
+        this.setDescription(taskRequest.getDescription());
+        return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Task)) return false;
+        Task task = (Task) o;
+        return id == task.id &&
+                Objects.equals(description, task.description) &&
+                priority == task.priority &&
+                status == task.status &&
+                Objects.equals(createdAt, task.createdAt) &&
+                Objects.equals(updatedAt, task.updatedAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, description, priority, status, createdAt, updatedAt);
     }
 }

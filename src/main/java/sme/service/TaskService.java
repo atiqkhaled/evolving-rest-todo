@@ -7,7 +7,12 @@ import sme.model._enum.PriorityEnum;
 import sme.model._enum.StatusEnum;
 import sme.repository.TaskRepository;
 import sme.util.exceptions.BadRequestException;
-import sme.util.exceptions.InterServerException;
+import sme.util.exceptions.BusinessNotFoundException;
+import sme.util.exceptions.BusinessServiceUnavailableException;
+import sme.util.exceptions.InternalServerException;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TaskService {
@@ -30,8 +35,89 @@ public class TaskService {
         } catch (BadRequestException bre) {
             throw bre;
         } catch (Exception ex) {
-            throw new InterServerException();
+            throw new InternalServerException();
         }
         return dbTask;
+    }
+
+    public Task getTask(long id) {
+        try {
+            Optional<Task> optionalTask = taskRepository.findById(id);
+            if (!optionalTask.isPresent())
+                throw new BusinessNotFoundException();
+            Task dbTask = optionalTask.get();
+            return dbTask;
+        } catch (BusinessNotFoundException bnf) {
+            throw bnf;
+        } catch (Exception ex) {
+            throw new InternalServerException();
+        }
+    }
+
+    public Task updateTask(TaskRequest taskRequest,long id) {
+        Task updateTask = null;
+        try {
+            Optional<Task> optionalTask = taskRepository.findById(id);
+            if (!optionalTask.isPresent())
+                throw new BusinessNotFoundException();
+            updateTask = optionalTask.get().copy(taskRequest);
+            updateTask = taskRepository.save(updateTask);
+        } catch (BusinessNotFoundException bnf) {
+            throw bnf;
+        } catch (Exception ex) {
+            throw new InternalServerException();
+        }
+        return updateTask;
+    }
+
+    public void delete(long id) {
+        try {
+            Optional<Task> optionalTask = taskRepository.findById(id);
+            if (!optionalTask.isPresent())
+                throw new BusinessNotFoundException();
+            taskRepository.delete(optionalTask.get());
+        }catch (BusinessNotFoundException bnf) {
+            throw bnf;
+        } catch (Exception ex) {
+            throw new BusinessServiceUnavailableException();
+        }
+    }
+
+    public Task markAsDone(long id) {
+        Task dbTask = null;
+        try {
+            Optional<Task> optionalTask = taskRepository.findById(id);
+            if (!optionalTask.isPresent()) {
+                throw new BusinessNotFoundException();
+            }
+            dbTask = optionalTask.get();
+            dbTask.setStatus(StatusEnum.Done);
+            dbTask = taskRepository.save(dbTask);
+        }catch (BusinessNotFoundException bnf) {
+            throw bnf;
+        }catch (Exception ex) {
+            throw new InternalServerException();
+        }
+        return dbTask;
+    }
+
+    public List<Task> getDoneTasks() {
+        List<Task> tasks = null;
+        try {
+            tasks = taskRepository.findByStatus(StatusEnum.Done);
+        }catch (Exception ex) {
+            throw new InternalServerException();
+        }
+        return tasks;
+    }
+    // get tasks with high order priority
+    public List<Task> getTasks() {
+        List<Task> allByOrderByPriorityAsc;
+        try {
+            allByOrderByPriorityAsc = taskRepository.findAllByOrderByPriorityAsc();
+        } catch (Exception ex) {
+            throw new InternalServerException();
+        }
+        return allByOrderByPriorityAsc;
     }
 }
