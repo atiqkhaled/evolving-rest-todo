@@ -11,6 +11,7 @@ import sme.util.exceptions.BusinessNotFoundException;
 import sme.util.exceptions.BusinessServiceUnavailableException;
 import sme.util.exceptions.InternalServerException;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -98,5 +99,25 @@ public class TaskService {
             throw new InternalServerException();
         }
         return dbTask;
+    }
+
+    public List<Task> getDoneTasks() {
+        List<Task> tasks = null;
+        try {
+            tasks = taskRepository.findByStatus(StatusEnum.Done);
+        }catch (Exception ex) {
+            throw new InternalServerException();
+        }
+        return tasks;
+    }
+    // get tasks with high order priority
+    public List<Task> getTasks() {
+        List<Task> allByOrderByPriorityAsc;
+        try {
+            allByOrderByPriorityAsc = taskRepository.findAllByOrderByPriorityAsc();
+        } catch (Exception ex) {
+            throw new InternalServerException();
+        }
+        return allByOrderByPriorityAsc;
     }
 }
