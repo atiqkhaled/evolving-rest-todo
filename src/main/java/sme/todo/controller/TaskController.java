@@ -11,8 +11,6 @@ import sme.todo.model.Task;
 import sme.todo.model._enum.PriorityEnum;
 import sme.todo.model._enum.StatusEnum;
 import sme.todo.service.TaskService;
-
-import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,7 +55,7 @@ public class TaskController {
 
     @PutMapping("/tasks/{id}")
     public ResponseEntity<EntityModel<Task>> update(@PathVariable long id,
-                                                    @RequestBody @Valid TaskRequest taskRequest) {
+                                                    @RequestBody TaskRequest taskRequest) {
         Task task = taskService.updateTask(taskRequest, id);
         EntityModel<Task> entityModel = assembler.toModel(task);
         return ResponseEntity
