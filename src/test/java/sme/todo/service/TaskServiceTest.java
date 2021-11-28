@@ -63,7 +63,7 @@ public class TaskServiceTest {
     @DisplayName("( When Create Task ) Check BadReqException")
     @Test
     void shouldTestReqExceptionForMalformedReq() {
-         TaskRequest taskRequest = null;
+         TaskRequest taskRequest = new TaskRequest();
          Assertions.assertThrows(BadRequestException.class,()-> taskService.addTask(taskRequest));
     }
 
@@ -109,6 +109,13 @@ public class TaskServiceTest {
         Assertions.assertEquals(mockTask.getId(),actualTask.getId());
     }
 
+    @DisplayName("( When Update Task ) Check BadReqException")
+    @Test
+    void updateTaskBadReqException() {
+        TaskRequest taskRequest = new TaskRequest();
+        Assertions.assertThrows(BadRequestException.class,()-> taskService.updateTask(taskRequest,1));
+    }
+
     @DisplayName("( When Update Task ) Check Task Not Found")
     @Test
     void updateTaskNotFound() {
@@ -117,6 +124,7 @@ public class TaskServiceTest {
             taskService.updateTask(taskReq,5l);
         });
     }
+
     @DisplayName("( When Update Task ) Check InternalServerException")
     @Test
     void updateTaskInternalServerException() {

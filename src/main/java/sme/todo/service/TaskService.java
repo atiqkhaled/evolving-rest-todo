@@ -16,7 +16,6 @@ import java.util.Optional;
 @Service
 public class TaskService {
     private final TaskRepository taskRepository;
-
     public TaskService(TaskRepository taskRepository) {
         this.taskRepository = taskRepository;
     }
@@ -24,7 +23,8 @@ public class TaskService {
     public Task addTask(TaskRequest taskRequest) {
         Task dbTask = null;
         try {
-            if (taskRequest == null)
+            if (taskRequest.getDescription() == null
+                    || taskRequest.getPriority() == null)
                 throw new BadRequestException();
             Task task = new Task();
             task.setDescription(taskRequest.getDescription());
@@ -56,11 +56,16 @@ public class TaskService {
     public Task updateTask(TaskRequest taskRequest,long id) {
         Task updateTask = null;
         try {
+            if (taskRequest.getDescription() == null
+                    || taskRequest.getPriority() == null)
+                throw new BadRequestException();
             Optional<Task> optionalTask = taskRepository.findById(id);
             if (!optionalTask.isPresent())
                 throw new BusinessNotFoundException();
             updateTask = optionalTask.get().copy(taskRequest);
             updateTask = taskRepository.save(updateTask);
+        } catch (BadRequestException bre) {
+            throw bre;
         } catch (BusinessNotFoundException bnf) {
             throw bnf;
         } catch (Exception ex) {
