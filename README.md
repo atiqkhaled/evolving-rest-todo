@@ -23,6 +23,7 @@ Application Navigation Information :
 * Create task and response will give task list uri `tasks`
 * each task json object in task list provide data and navigation information at same time e.g REST. 
  - `_links` define resource transfer from state to state  e.g delete, mark as done, get task for update etc.
+ 
 `
              {
                 "id": 1,
