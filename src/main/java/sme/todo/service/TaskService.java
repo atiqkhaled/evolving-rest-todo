@@ -1,28 +1,27 @@
-package sme.service;
-
+package sme.todo.service;
 import org.springframework.stereotype.Service;
-import sme.controller.dto.TaskRequest;
-import sme.model.Task;
-import sme.model._enum.PriorityEnum;
-import sme.model._enum.StatusEnum;
-import sme.repository.TaskRepository;
-import sme.util.exceptions.BadRequestException;
-import sme.util.exceptions.BusinessNotFoundException;
-import sme.util.exceptions.BusinessServiceUnavailableException;
-import sme.util.exceptions.InternalServerException;
+import sme.todo.controller.dto.TaskRequest;
+import sme.todo.model.Task;
+import sme.todo.model._enum.PriorityEnum;
+import sme.todo.model._enum.StatusEnum;
+import sme.todo.repository.TaskRepository;
+import sme.todo.exceptions.BadRequestException;
+import sme.todo.exceptions.BusinessNotFoundException;
+import sme.todo.exceptions.BusinessServiceUnavailableException;
+import sme.todo.exceptions.InternalServerException;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class TaskService {
-    TaskRepository taskRepository;
+    private final TaskRepository taskRepository;
 
     public TaskService(TaskRepository taskRepository) {
         this.taskRepository = taskRepository;
     }
 
-    public Task add(TaskRequest taskRequest) {
+    public Task addTask(TaskRequest taskRequest) {
         Task dbTask = null;
         try {
             if (taskRequest == null)
@@ -70,7 +69,7 @@ public class TaskService {
         return updateTask;
     }
 
-    public void delete(long id) {
+    public void deleteTask(long id) {
         try {
             Optional<Task> optionalTask = taskRepository.findById(id);
             if (!optionalTask.isPresent())

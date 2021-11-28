@@ -1,4 +1,4 @@
-package sme.service;
+package sme.todo.service;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,15 +7,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import sme.controller.dto.TaskRequest;
-import sme.model.Task;
-import sme.model._enum.PriorityEnum;
-import sme.model._enum.StatusEnum;
-import sme.repository.TaskRepository;
-import sme.service.TaskService;
-import sme.util.exceptions.BadRequestException;
-import sme.util.exceptions.BusinessNotFoundException;
-import sme.util.exceptions.InternalServerException;
+import sme.todo.controller.dto.TaskRequest;
+import sme.todo.exceptions.BusinessServiceUnavailableException;
+import sme.todo.model.Task;
+import sme.todo.model._enum.PriorityEnum;
+import sme.todo.model._enum.StatusEnum;
+import sme.todo.repository.TaskRepository;
+import sme.todo.exceptions.BadRequestException;
+import sme.todo.exceptions.BusinessNotFoundException;
+import sme.todo.exceptions.InternalServerException;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -37,26 +37,25 @@ public class TaskServiceTest {
     void setUp() {
         // for list task
         Task task1 = new Task();
-        task1.setPriority(PriorityEnum.High);
+        task1.setPriority(PriorityEnum.high);
         tasks.add(task1);
         task1.setStatus(StatusEnum.Done);
         Task task2 = new Task();
-        task2.setPriority(PriorityEnum.High);
+        task2.setPriority(PriorityEnum.high);
         task2.setStatus(StatusEnum.Done);
         tasks.add(task2);
         // single task
         mockTask = new Task();
         mockTask.setId(1);
         mockTask.setDescription("test");
-        mockTask.setPriority(PriorityEnum.High);
+        mockTask.setPriority(PriorityEnum.high);
         mockTask.setStatus(StatusEnum.Pending);
         mockTask.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         mockTask.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
         // task request
         taskReq = new TaskRequest();
-        taskReq.setPriority(PriorityEnum.Medium.name());
+        taskReq.setPriority(PriorityEnum.medium.name());
         taskReq.setDescription("test 2");
-        taskReq.setStatus(StatusEnum.Done.name());
         // construct taskService with mock repo.
         taskService = new TaskService(taskRepository);
     }
@@ -65,7 +64,7 @@ public class TaskServiceTest {
     @Test
     void shouldTestReqExceptionForMalformedReq() {
          TaskRequest taskRequest = null;
-         Assertions.assertThrows(BadRequestException.class,()-> taskService.add(taskRequest));
+         Assertions.assertThrows(BadRequestException.class,()-> taskService.addTask(taskRequest));
     }
 
     @DisplayName("( Create Task ) Check Task Added")
@@ -73,7 +72,7 @@ public class TaskServiceTest {
     void ShouldCreateTask() {
         Task task = new Task();
         when(taskRepository.save(any(Task.class))).thenReturn(task);
-        Task actualTask = taskService.add(taskReq);
+        Task actualTask = taskService.addTask(taskReq);
         Assertions.assertNotNull(actualTask.getId());
     }
 
@@ -81,7 +80,7 @@ public class TaskServiceTest {
     @Test
     void shouldTestInternalServerException() {
         when(taskRepository.save(mockTask)).thenThrow(InternalServerException.class);
-        Assertions.assertThrows(InternalServerException.class,()-> taskService.add(taskReq));
+        Assertions.assertThrows(InternalServerException.class,()-> taskService.addTask(taskReq));
     }
 
     @DisplayName("( When Get Task ) Check Task Not Found")
@@ -131,8 +130,7 @@ public class TaskServiceTest {
     @Test
     void testTaskCopy() {
         Task actualTask = mockTask.copy(taskReq);
-        Assertions.assertAll(() -> Assertions.assertEquals(taskReq.getStatus(),actualTask.getStatus().name()),
-                () -> Assertions.assertEquals(taskReq.getDescription(),actualTask.getDescription()),
+        Assertions.assertAll( () -> Assertions.assertEquals(taskReq.getDescription(),actualTask.getDescription()),
                 () -> Assertions.assertEquals(taskReq.getPriority(),actualTask.getPriority().name()),
                 () -> Assertions.assertEquals(mockTask.getId(),actualTask.getId()));
 
@@ -144,10 +142,13 @@ public class TaskServiceTest {
         when(taskRepository.findById(5l)).thenReturn(Optional.of(mockTask));
         when(taskRepository.save(mockTask)).thenReturn(mockTask);
         Task actualTask = taskService.updateTask(taskReq,5l);
-        Assertions.assertAll(() -> Assertions.assertEquals(taskReq.getStatus(),actualTask.getStatus().name()),
-                () -> Assertions.assertEquals(taskReq.getDescription(),actualTask.getDescription()),
+        Assertions.assertAll(() -> Assertions.assertEquals(taskReq.getDescription(),actualTask.getDescription()),
                 () -> Assertions.assertEquals(taskReq.getPriority(),actualTask.getPriority().name()),
-                () -> Assertions.assertEquals(mockTask.getId(),actualTask.getId()));
+                () -> Assertions.assertEquals(mockTask.getId(),actualTask.getId()),
+                () -> Assertions.assertEquals(mockTask.getUpdatedAt().getTime(),
+                        actualTask.getUpdatedAt().getTime()),
+                () -> Assertions.assertEquals(mockTask.getCreatedAt().getTime(),
+                        actualTask.getCreatedAt().getTime()));
     }
 
     @DisplayName("( When Delete Task ) Check Task Not Found")
@@ -155,15 +156,24 @@ public class TaskServiceTest {
     void deleteTaskNotFound() {
         when(taskRepository.findById(5l)).thenReturn(Optional.ofNullable(null));
         Assertions.assertThrows(BusinessNotFoundException.class,() -> {
-            taskService.delete(5l);
+            taskService.deleteTask(5l);
         });
     }
     @DisplayName("( When Delete Task ) Check Task Deleted")
     @Test
     void deleteTask() {
         when(taskRepository.findById(5l)).thenReturn(Optional.of(mockTask));
-        taskService.delete(5l);
+        taskService.deleteTask(5l);
         verify(taskRepository, times(1)).delete(mockTask);
+    }
+
+    @DisplayName("( When Delete Task ) Check ServiceUnavailableException")
+    @Test
+    void checkServiceUnavailableForDeleteTask() {
+        when(taskRepository.findById(5l)).thenThrow(RuntimeException.class);
+        Assertions.assertThrows(BusinessServiceUnavailableException.class,() -> {
+            taskService.deleteTask(5l);
+        });
     }
 
     @DisplayName("( When MarkAsDone ) Check task not found")
@@ -211,7 +221,6 @@ public class TaskServiceTest {
     void getAllTasksHigherOrder() {
         when(taskRepository.findAllByOrderByPriorityAsc()).thenReturn(tasks);
         List<Task> actual = taskService.getTasks();
-        Assertions.assertEquals(tasks,actual);
         Assertions.assertEquals(tasks.size(),actual.size());
         Assertions.assertEquals(tasks.iterator().next().getPriority().name(),
                 actual.iterator().next().getPriority().name());

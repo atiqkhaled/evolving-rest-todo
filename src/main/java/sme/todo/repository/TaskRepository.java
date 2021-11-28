@@ -1,9 +1,9 @@
-package sme.repository;
+package sme.todo.repository;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import sme.model.Task;
-import sme.model._enum.StatusEnum;
+import sme.todo.model.Task;
+import sme.todo.model._enum.StatusEnum;
 
 import java.util.List;
 
