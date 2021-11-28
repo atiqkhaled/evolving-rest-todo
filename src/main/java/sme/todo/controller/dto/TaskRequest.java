@@ -1,9 +1,15 @@
-package sme.controller.dto;
+package sme.todo.controller.dto;
 
 public class TaskRequest {
     private String description;
     private String priority;
-    private String status;
+
+    public TaskRequest() {
+    }
+    public TaskRequest(String description, String priority) {
+        this.description = description;
+        this.priority = priority;
+    }
 
     public String getDescription() {
         return description;
@@ -19,13 +25,5 @@ public class TaskRequest {
 
     public void setPriority(String priority) {
         this.priority = priority;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 }

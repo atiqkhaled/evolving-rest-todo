@@ -1,4 +1,4 @@
-package sme.util.exceptions;
+package sme.todo.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

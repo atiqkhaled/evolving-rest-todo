@@ -1,15 +1,13 @@
-package sme.model;
+package sme.todo.model;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import sme.controller.dto.TaskRequest;
-import sme.model._enum.PriorityEnum;
-import sme.model._enum.StatusEnum;
+import sme.todo.controller.dto.TaskRequest;
+import sme.todo.model._enum.PriorityEnum;
+import sme.todo.model._enum.StatusEnum;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
-import java.util.Objects;
 
 @Entity
 @Table
@@ -17,18 +15,13 @@ public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @NotNull
     private String description;
-    @NotNull
     @Enumerated(EnumType.ORDINAL)
     private PriorityEnum priority;
-    @NotNull
-    @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.ORDINAL)
     private StatusEnum status;
-    @NotNull
     @CreationTimestamp
     private Timestamp createdAt;
-    @NotNull
     @UpdateTimestamp
     private Timestamp updatedAt;
 
@@ -84,26 +77,8 @@ public class Task {
     }
     public Task copy(TaskRequest taskRequest) {
         this.setPriority(PriorityEnum.valueOf(taskRequest.getPriority()));
-        this.setStatus(StatusEnum.valueOf(taskRequest.getStatus()));
         this.setDescription(taskRequest.getDescription());
         return this;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Task)) return false;
-        Task task = (Task) o;
-        return id == task.id &&
-                Objects.equals(description, task.description) &&
-                priority == task.priority &&
-                status == task.status &&
-                Objects.equals(createdAt, task.createdAt) &&
-                Objects.equals(updatedAt, task.updatedAt);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, description, priority, status, createdAt, updatedAt);
-    }
 }
