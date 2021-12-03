@@ -8,15 +8,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import sme.todo.controller.dto.TaskRequest;
-import sme.todo.exceptions.BusinessServiceUnavailableException;
 import sme.todo.model.Task;
 import sme.todo.model._enum.PriorityEnum;
 import sme.todo.model._enum.StatusEnum;
 import sme.todo.repository.TaskRepository;
 import sme.todo.exceptions.BadRequestException;
 import sme.todo.exceptions.BusinessNotFoundException;
-import sme.todo.exceptions.InternalServerException;
 
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +55,7 @@ public class TaskServiceTest {
         taskReq = new TaskRequest();
         taskReq.setPriority(PriorityEnum.medium.name());
         taskReq.setDescription("test 2");
-        // construct taskService with mock repo.
+        // initialize taskService with mock repo.
         taskService = new TaskService(taskRepository);
     }
 
@@ -76,13 +75,6 @@ public class TaskServiceTest {
         Assertions.assertNotNull(actualTask.getId());
     }
 
-    @DisplayName("( When Create Task ) Check InternalServerException")
-    @Test
-    void shouldTestInternalServerException() {
-        when(taskRepository.save(mockTask)).thenThrow(InternalServerException.class);
-        Assertions.assertThrows(InternalServerException.class,()-> taskService.addTask(taskReq));
-    }
-
     @DisplayName("( When Get Task ) Check Task Not Found")
     @Test
     void taskNotFound() {
@@ -92,56 +84,21 @@ public class TaskServiceTest {
         });
     }
 
-    @DisplayName("( When Get Task ) Check InternalSeverException")
-    @Test
-    void testInternalServerException() {
-        when(taskRepository.findById(any())).thenThrow(RuntimeException.class);
-        Assertions.assertThrows(InternalServerException.class,() -> {
-            taskService.getTask(-1l);
-        });
-    }
-
     @DisplayName("( When Get Task ) Check Task Found")
     @Test
     void testFindTask() {
-        when(taskRepository.findById(1l)).thenReturn(Optional.of(mockTask));
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(mockTask));
         Task actualTask = taskService.getTask(1l);
         Assertions.assertEquals(mockTask.getId(),actualTask.getId());
-    }
-
-    @DisplayName("( When Update Task ) Check BadReqException")
-    @Test
-    void updateTaskBadReqException() {
-        TaskRequest taskRequest = new TaskRequest();
-        Assertions.assertThrows(BadRequestException.class,()-> taskService.updateTask(taskRequest,1));
     }
 
     @DisplayName("( When Update Task ) Check Task Not Found")
     @Test
     void updateTaskNotFound() {
-        when(taskRepository.findById(5l)).thenReturn(Optional.ofNullable(null));
+        when(taskRepository.findById(5l)).thenReturn(Optional.empty());
         Assertions.assertThrows(BusinessNotFoundException.class,() -> {
-            taskService.updateTask(taskReq,5l);
+            taskService.updateTask(taskReq, 5L);
         });
-    }
-
-    @DisplayName("( When Update Task ) Check InternalServerException")
-    @Test
-    void updateTaskInternalServerException() {
-        when(taskRepository.findById(5l)).thenThrow(RuntimeException.class);
-        Assertions.assertThrows(InternalServerException.class,() -> {
-            taskService.updateTask(taskReq,5l);
-        });
-    }
-
-    @DisplayName("( Update Task ) test copy of Task")
-    @Test
-    void testTaskCopy() {
-        Task actualTask = mockTask.copy(taskReq);
-        Assertions.assertAll( () -> Assertions.assertEquals(taskReq.getDescription(),actualTask.getDescription()),
-                () -> Assertions.assertEquals(taskReq.getPriority(),actualTask.getPriority().name()),
-                () -> Assertions.assertEquals(mockTask.getId(),actualTask.getId()));
-
     }
 
     @DisplayName("( Update Task ) Check Task updated")
@@ -175,14 +132,7 @@ public class TaskServiceTest {
         verify(taskRepository, times(1)).delete(mockTask);
     }
 
-    @DisplayName("( When Delete Task ) Check ServiceUnavailableException")
-    @Test
-    void checkServiceUnavailableForDeleteTask() {
-        when(taskRepository.findById(5l)).thenThrow(RuntimeException.class);
-        Assertions.assertThrows(BusinessServiceUnavailableException.class,() -> {
-            taskService.deleteTask(5l);
-        });
-    }
+
 
     @DisplayName("( When MarkAsDone ) Check task not found")
     @Test
@@ -201,12 +151,7 @@ public class TaskServiceTest {
         Task actual = taskService.markAsDone(5l);
         Assertions.assertEquals(StatusEnum.Done,actual.getStatus());
     }
-    @DisplayName("( When MarkAsDone ) Check InternalServerException")
-    @Test
-    void internalServerExceptionForMarkAsDone() {
-        when(taskRepository.findById(any())).thenThrow(RuntimeException.class);
-        Assertions.assertThrows(InternalServerException.class,() -> taskService.markAsDone(5l));
-    }
+
     @DisplayName("( When GetDoneTasks ) Check All Tasks Which Are Done !")
     @Test
     void getAllTasksWhichDone() {
@@ -217,12 +162,6 @@ public class TaskServiceTest {
         Assertions.assertEquals(tasks.iterator().next().getStatus().name(),
                 actual.iterator().next().getStatus().name());
     }
-    @DisplayName("( When GetDoneTasks ) Check InternalServerException")
-    @Test
-    void internalServerExceptionForGetDoneTasks() {
-        when(taskRepository.findByStatus(any())).thenThrow(RuntimeException.class);
-        Assertions.assertThrows(InternalServerException.class,() -> taskService.getDoneTasks());
-    }
 
     @DisplayName("( When Get Tasks ) Check All Tasks with Priority High Order !")
     @Test
@@ -232,13 +171,6 @@ public class TaskServiceTest {
         Assertions.assertEquals(tasks.size(),actual.size());
         Assertions.assertEquals(tasks.iterator().next().getPriority().name(),
                 actual.iterator().next().getPriority().name());
-    }
-
-    @DisplayName("( When Get Tasks ) Check InternalServerException")
-    @Test
-    void internalServerExceptionForGetTasks() {
-        when(taskRepository.findAllByOrderByPriorityAsc()).thenThrow(RuntimeException.class);
-        Assertions.assertThrows(InternalServerException.class,() -> taskService.getTasks());
     }
 
 

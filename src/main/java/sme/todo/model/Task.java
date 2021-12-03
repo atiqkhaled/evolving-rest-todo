@@ -2,7 +2,6 @@ package sme.todo.model;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import sme.todo.controller.dto.TaskRequest;
 import sme.todo.model._enum.PriorityEnum;
 import sme.todo.model._enum.StatusEnum;
 
@@ -75,10 +74,4 @@ public class Task {
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
     }
-    public Task copy(TaskRequest taskRequest) {
-        this.setPriority(PriorityEnum.valueOf(taskRequest.getPriority()));
-        this.setDescription(taskRequest.getDescription());
-        return this;
-    }
-
 }
