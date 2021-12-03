@@ -6,11 +6,6 @@ public class TaskRequest {
 
     public TaskRequest() {
     }
-    public TaskRequest(String description, String priority) {
-        this.description = description;
-        this.priority = priority;
-    }
-
     public String getDescription() {
         return description;
     }

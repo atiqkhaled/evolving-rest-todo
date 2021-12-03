@@ -1,4 +1,5 @@
 package sme.todo.service;
+
 import org.springframework.stereotype.Service;
 import sme.todo.controller.dto.TaskRequest;
 import sme.todo.model.Task;
@@ -7,121 +8,69 @@ import sme.todo.model._enum.StatusEnum;
 import sme.todo.repository.TaskRepository;
 import sme.todo.exceptions.BadRequestException;
 import sme.todo.exceptions.BusinessNotFoundException;
-import sme.todo.exceptions.BusinessServiceUnavailableException;
-import sme.todo.exceptions.InternalServerException;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TaskService {
     private final TaskRepository taskRepository;
+
     public TaskService(TaskRepository taskRepository) {
         this.taskRepository = taskRepository;
     }
 
     public Task addTask(TaskRequest taskRequest) {
-        Task dbTask = null;
-        try {
-            if (taskRequest.getDescription() == null
-                    || taskRequest.getPriority() == null)
-                throw new BadRequestException();
-            Task task = new Task();
-            task.setDescription(taskRequest.getDescription());
-            task.setPriority(PriorityEnum.valueOf(taskRequest.getPriority()));
-            task.setStatus(StatusEnum.Pending);
-            dbTask = taskRepository.save(task);
-        } catch (BadRequestException bre) {
-            throw bre;
-        } catch (Exception ex) {
-            throw new InternalServerException();
-        }
-        return dbTask;
+        if (taskRequest.getDescription() == null
+                || taskRequest.getPriority() == null)
+            throw new BadRequestException("Description and Priority not valid");
+        Task task = new Task();
+        task.setDescription(taskRequest.getDescription());
+        task.setPriority(PriorityEnum.valueOf(taskRequest.getPriority()));
+        task.setStatus(StatusEnum.Pending);
+        return taskRepository.save(task);
     }
 
     public Task getTask(long id) {
-        try {
-            Optional<Task> optionalTask = taskRepository.findById(id);
-            if (!optionalTask.isPresent())
-                throw new BusinessNotFoundException();
-            Task dbTask = optionalTask.get();
-            return dbTask;
-        } catch (BusinessNotFoundException bnf) {
-            throw bnf;
-        } catch (Exception ex) {
-            throw new InternalServerException();
-        }
+        var task = findTask(id);
+        return task;
     }
 
-    public Task updateTask(TaskRequest taskRequest,long id) {
-        Task updateTask = null;
-        try {
-            if (taskRequest.getDescription() == null
-                    || taskRequest.getPriority() == null)
-                throw new BadRequestException();
-            Optional<Task> optionalTask = taskRepository.findById(id);
-            if (!optionalTask.isPresent())
-                throw new BusinessNotFoundException();
-            updateTask = optionalTask.get().copy(taskRequest);
-            updateTask = taskRepository.save(updateTask);
-        } catch (BadRequestException bre) {
-            throw bre;
-        } catch (BusinessNotFoundException bnf) {
-            throw bnf;
-        } catch (Exception ex) {
-            throw new InternalServerException();
-        }
-        return updateTask;
+    public Task updateTask(TaskRequest taskRequest, long id) {
+        if (taskRequest.getDescription() == null
+                || taskRequest.getPriority() == null)
+            throw new BadRequestException("Description and Priority not valid");
+        var task = findTask(id);
+        requestUpdate(task,taskRequest);
+        return taskRepository.save(task);
     }
 
     public void deleteTask(long id) {
-        try {
-            Optional<Task> optionalTask = taskRepository.findById(id);
-            if (!optionalTask.isPresent())
-                throw new BusinessNotFoundException();
-            taskRepository.delete(optionalTask.get());
-        }catch (BusinessNotFoundException bnf) {
-            throw bnf;
-        } catch (Exception ex) {
-            throw new BusinessServiceUnavailableException();
-        }
+        var dbTask = findTask(id);
+        taskRepository.delete(dbTask);
     }
 
     public Task markAsDone(long id) {
-        Task dbTask = null;
-        try {
-            Optional<Task> optionalTask = taskRepository.findById(id);
-            if (!optionalTask.isPresent()) {
-                throw new BusinessNotFoundException();
-            }
-            dbTask = optionalTask.get();
-            dbTask.setStatus(StatusEnum.Done);
-            dbTask = taskRepository.save(dbTask);
-        }catch (BusinessNotFoundException bnf) {
-            throw bnf;
-        }catch (Exception ex) {
-            throw new InternalServerException();
-        }
-        return dbTask;
+        var dbTask = findTask(id);
+        dbTask.setStatus(StatusEnum.Done);
+        return taskRepository.save(dbTask);
     }
 
     public List<Task> getDoneTasks() {
-        List<Task> tasks = null;
-        try {
-            tasks = taskRepository.findByStatus(StatusEnum.Done);
-        }catch (Exception ex) {
-            throw new InternalServerException();
-        }
-        return tasks;
+        return taskRepository.findByStatus(StatusEnum.Done);
     }
+
     // get tasks with high order priority
     public List<Task> getTasks() {
-        List<Task> allByOrderByPriorityAsc;
-        try {
-            allByOrderByPriorityAsc = taskRepository.findAllByOrderByPriorityAsc();
-        } catch (Exception ex) {
-            throw new InternalServerException();
-        }
-        return allByOrderByPriorityAsc;
+        return taskRepository.findAllByOrderByPriorityAsc();
+    }
+
+    private Task findTask(long id) {
+        return taskRepository.findById(id)
+                .orElseThrow(() -> new BusinessNotFoundException("task not found for id : " + id));
+    }
+
+    private void requestUpdate(Task task, TaskRequest taskRequest) {
+        task.setPriority(PriorityEnum.valueOf(taskRequest.getPriority()));
+        task.setDescription(taskRequest.getDescription());
     }
 }
