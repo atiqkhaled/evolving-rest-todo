@@ -19,9 +19,9 @@ How to know application launch successfully ?
 * if `http://localhost:8080/tasks` request on browser found `status : 200` with response `{"_links":{"self":{"href":"http://localhost:8080/tasks"}}}`
 
 Application Navigation Information :
-* Find Postman collection on git clone project directory.
-* Create task and response will give task list uri `tasks`
-* each json object task in task list provide data and navigation information at same time e.g REST. 
+* Find Postman collection on project directory.
+* Create task, response will give task list uri `tasks`
+* each json object task in task list provide data and navigation information at same time. 
  - `_links` define resource transfer from state to state  e.g delete, mark as done, get task for update etc.
  
 `
@@ -49,7 +49,7 @@ Application Navigation Information :
             }
 `
             
- Note : payload for create task and update task `{"description" : "test 2", "priority" : "low"}` and find postman `priority enum` api.
+ Note : payload for create task and update task is `{"description" : "test 2", "priority" : "low"}` and please find postman `priority enum` api.
  
  Thanks a lot for reading this.
 `
