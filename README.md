@@ -1,3 +1,9 @@
+
+Features :
+1. Rest Api
+2. Global Exception Handler
+3. Unit Testing
+
 How To Launch Todo List Application :
 Following things need to install 
 1. Java JDK 11
@@ -12,7 +18,7 @@ Following procedure need to be maintain to build jar of application.
 * This `todo-app` jar located at `target` directory of project.
 
 Final procedure to Launch Todo List application
-* To launch application need to write command `java -jar todo-app.jar` at jar location.
+* Write command `java -jar todo-app.jar` at jar location.
 * While Start up of application, db and table will be created automatically as `todo`
 
 How to know application launch successfully ?
