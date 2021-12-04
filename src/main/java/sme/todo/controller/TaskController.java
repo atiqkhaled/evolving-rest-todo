@@ -37,8 +37,7 @@ public class TaskController {
 
     @PostMapping("/tasks")
     public ResponseEntity<EntityModel<Task>> create(@RequestBody @Valid TaskRequest taskRequest, Errors error) {
-      if(error.hasErrors())
-          throw new BadRequestException(error.getFieldError().getDefaultMessage());
+      handleRequestValidation(error);
       Task task = taskService.addTask(taskRequest);
       EntityModel<Task> entityModel = assembler.toModel(task);
       return ResponseEntity
@@ -63,8 +62,7 @@ public class TaskController {
     @PutMapping("/tasks/{id}")
     public ResponseEntity<EntityModel<Task>> update(@PathVariable long id,
                                                     @RequestBody @Valid TaskRequest taskRequest,Errors error) {
-        if(error.hasErrors())
-            throw new BadRequestException(error.getFieldError().getDefaultMessage());
+        handleRequestValidation(error);
         Task task = taskService.updateTask(taskRequest, id);
         EntityModel<Task> entityModel = assembler.toModel(task);
         return ResponseEntity
@@ -123,6 +121,11 @@ public class TaskController {
     @GetMapping("tasks/priorities")
     public PriorityEnum[] allPriorites() {
         return PriorityEnum.values();
+    }
+
+    private void handleRequestValidation(Errors error) {
+        if(error.hasErrors())
+            throw new BadRequestException(error.getFieldError().getDefaultMessage());
     }
 
 }
