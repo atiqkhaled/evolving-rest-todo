@@ -4,13 +4,17 @@ import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import sme.todo.controller.config.TaskModelAssembler;
 import sme.todo.controller.dto.TaskRequest;
+import sme.todo.exceptions.BadRequestException;
 import sme.todo.model.Task;
 import sme.todo.model._enum.PriorityEnum;
 import sme.todo.model._enum.StatusEnum;
 import sme.todo.service.TaskService;
+
+import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,9 +36,11 @@ public class TaskController {
     }
 
     @PostMapping("/tasks")
-    public ResponseEntity<EntityModel<Task>> create(@RequestBody TaskRequest taskRequest) {
-       Task task = taskService.addTask(taskRequest);
-       EntityModel<Task> entityModel = assembler.toModel(task);
+    public ResponseEntity<EntityModel<Task>> create(@RequestBody @Valid TaskRequest taskRequest, Errors error) {
+      if(error.hasErrors())
+          throw new BadRequestException(error.getFieldError().getDefaultMessage());
+      Task task = taskService.addTask(taskRequest);
+      EntityModel<Task> entityModel = assembler.toModel(task);
       return ResponseEntity
                 .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
                 .body(entityModel);
@@ -42,10 +48,11 @@ public class TaskController {
 
     @GetMapping("/tasks/{id}")
     public ResponseEntity<EntityModel<Task>> one(@PathVariable long id) {
+        Errors error = null;
         Task task =  taskService.getTask(id);
         EntityModel<Task> entityModel = assembler.toModel(task);
         entityModel.add(linkTo(methodOn(TaskController.class).update(task.getId(),
-                new TaskRequest())).withRel(UPDATE));
+                new TaskRequest(),error)).withRel(UPDATE));
         entityModel.add(linkTo(methodOn(TaskController.class).delete(task.getId())).withRel(DELETE));
         return ResponseEntity
                 .created(entityModel.getRequiredLink(IanaLinkRelations.SELF).toUri())
@@ -55,7 +62,9 @@ public class TaskController {
 
     @PutMapping("/tasks/{id}")
     public ResponseEntity<EntityModel<Task>> update(@PathVariable long id,
-                                                    @RequestBody TaskRequest taskRequest) {
+                                                    @RequestBody @Valid TaskRequest taskRequest,Errors error) {
+        if(error.hasErrors())
+            throw new BadRequestException(error.getFieldError().getDefaultMessage());
         Task task = taskService.updateTask(taskRequest, id);
         EntityModel<Task> entityModel = assembler.toModel(task);
         return ResponseEntity

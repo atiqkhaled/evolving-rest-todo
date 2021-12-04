@@ -8,14 +8,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import sme.todo.controller.dto.TaskRequest;
+import sme.todo.exceptions.BusinessNotFoundException;
 import sme.todo.model.Task;
 import sme.todo.model._enum.PriorityEnum;
 import sme.todo.model._enum.StatusEnum;
 import sme.todo.repository.TaskRepository;
-import sme.todo.exceptions.BadRequestException;
-import sme.todo.exceptions.BusinessNotFoundException;
 
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,12 +57,6 @@ public class TaskServiceTest {
         taskService = new TaskService(taskRepository);
     }
 
-    @DisplayName("( When Create Task ) Check BadReqException")
-    @Test
-    void shouldTestReqExceptionForMalformedReq() {
-         TaskRequest taskRequest = new TaskRequest();
-         Assertions.assertThrows(BadRequestException.class,()-> taskService.addTask(taskRequest));
-    }
 
     @DisplayName("( Create Task ) Check Task Added")
     @Test
