@@ -1,3 +1,9 @@
+
+Introduction : Evolving restfull todo service, task can be added, updated and deleted. Can be marked task as done. Following stack cover on Todo List service. 
+1. Rest Api
+2. Global Exception Handler
+3. Unit Testing
+
 How To Launch Todo List Application :
 Following things need to install 
 1. Java JDK 11
@@ -12,16 +18,16 @@ Following procedure need to be maintain to build jar of application.
 * This `todo-app` jar located at `target` directory of project.
 
 Final procedure to Launch Todo List application
-* To launch application need to write command `java -jar todo-app.jar` at jar location.
+* Write command `java -jar todo-app.jar` at jar location.
 * While Start up of application, db and table will be created automatically as `todo`
 
 How to know application launch successfully ?
 * if `http://localhost:8080/tasks` request on browser found `status : 200` with response `{"_links":{"self":{"href":"http://localhost:8080/tasks"}}}`
 
 Application Navigation Information :
-* Find Postman collection on git clone project directory.
-* Create task and response will give task list uri `tasks`
-* each json object task in task list provide data and navigation information at same time e.g REST. 
+* Find Postman collection on project directory.
+* Create task, response will give task list uri `tasks`
+* each json object task in task list provide data and navigation information at same time. 
  - `_links` define resource transfer from state to state  e.g delete, mark as done, get task for update etc.
  
 `
@@ -49,7 +55,7 @@ Application Navigation Information :
             }
 `
             
- Note : payload for create task and update task `{"description" : "test 2", "priority" : "low"}` and find postman `priority enum` api.
+ Note : payload for create task and update task is `{"description" : "test 2", "priority" : "low"}` and please find postman `priority enum` api.
  
  Thanks a lot for reading this.
 `
