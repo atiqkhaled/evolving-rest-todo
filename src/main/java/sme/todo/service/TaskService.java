@@ -2,12 +2,11 @@ package sme.todo.service;
 
 import org.springframework.stereotype.Service;
 import sme.todo.controller.dto.TaskRequest;
+import sme.todo.exceptions.BusinessNotFoundException;
 import sme.todo.model.Task;
 import sme.todo.model._enum.PriorityEnum;
 import sme.todo.model._enum.StatusEnum;
 import sme.todo.repository.TaskRepository;
-import sme.todo.exceptions.BadRequestException;
-import sme.todo.exceptions.BusinessNotFoundException;
 
 import java.util.List;
 
@@ -20,9 +19,6 @@ public class TaskService {
     }
 
     public Task addTask(TaskRequest taskRequest) {
-        if (taskRequest.getDescription() == null
-                || taskRequest.getPriority() == null)
-            throw new BadRequestException("Description and Priority not valid");
         Task task = new Task();
         task.setDescription(taskRequest.getDescription());
         task.setPriority(PriorityEnum.valueOf(taskRequest.getPriority()));
@@ -36,9 +32,6 @@ public class TaskService {
     }
 
     public Task updateTask(TaskRequest taskRequest, long id) {
-        if (taskRequest.getDescription() == null
-                || taskRequest.getPriority() == null)
-            throw new BadRequestException("Description and Priority not valid");
         var task = findTask(id);
         requestUpdate(task,taskRequest);
         return taskRepository.save(task);
