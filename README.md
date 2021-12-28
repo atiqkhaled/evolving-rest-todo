@@ -1,5 +1,5 @@
 
-Introduction : Evolving restfull todo service, task can be added, updated and deleted. Can be marked task as done. Following stack cover on Todo List service. 
+Introduction : Evolving restfull todo service, crud operation on task. Can be marked task as done. Following stack cover on Todo List service. 
 1. Rest Api
 2. Global Exception Handler
 3. Unit Testing
