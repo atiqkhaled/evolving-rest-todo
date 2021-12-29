@@ -1,6 +1,6 @@
 
 Introduction : Evolving restfull todo service, crud operation on task. Can be marked task as done. Following stack cover on Todo List service. 
-1. Rest Api
+1. Evolving Rest Api e.g using hyper-media given data and navigation information at same time.
 2. Global Exception Handler
 3. Unit Testing
 
